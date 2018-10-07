@@ -5,7 +5,7 @@ var path = require('path');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var sssRouter = require('./routes/sss');
+var inspectRouter = require('./routes/inspect');
 
 var app = express();
 
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/inspector', express.static(path.join(__dirname, 'public/javascripts/inspector')));
 
 app.use('/', indexRouter);
-app.use('/sss', sssRouter);
+app.use('/inspect', inspectRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
