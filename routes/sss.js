@@ -27,7 +27,41 @@ router.get('/', function(req, res, next) {
     res.set("Content-Type", "text/json").status(402).send(err);
   });
 
-
 });
+
+
+function adjustURL(requestedURL, refURL) {
+  let parsed = url.parse(refURL, true);
+
+  let parsedRequestURL = url.parse(requestedURL, true);
+
+  let protocol;
+  let host;
+  let path='';
+  console.log(parsed);
+  if(parsed.protocol != undefined) {
+    return parsed.href;
+  } 
+
+  protocol = "http://";
+
+  if(parsedRequestURL.host == undefined) {
+    host = '';
+  } else {
+    host = parsedRequestURL.host;
+  }
+
+  if(parsed.path[0] != '/') {
+    let p = parsedRequestURL.path;
+    let lastParanthesisIndex = p.lastIndexOf('/');
+    path += p.substr(0, lastParanthesisIndex+1);
+  }
+
+  path += parsed.path;
+
+  console.log(host);
+  console.log(path);
+  return protocol + host + path;
+}
 
 module.exports = router;

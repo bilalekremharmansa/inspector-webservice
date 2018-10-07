@@ -72,6 +72,9 @@ class Tag {
         this.name = name;
         this.attrs = attrs;
 
+        for(const accessor in Parser.tagRules) {
+            Parser.tagRules[accessor](this);
+        }
     }
 
     toString() {
@@ -190,6 +193,12 @@ class Parser {
     constructor(input) {
         this.lexer = new Scanner(input);
         this.tok = TOKEN.EMPTY;
+        
+        Parser.tagRules = []; // static var - rules
+    }
+
+    addTagRule(rule) {
+        Parser.tagRules.push(rule);
     }
 
     match(token) {
@@ -316,5 +325,58 @@ let parser = new Parser
     <title>Inspector </title>
     </head>
     `);
+
+/* the lines below is for testing here. They should be placed in
+sss.js */
+function adjustURL(requestedURL, refURL) {
+    let parsed = url.parse(refURL, true);
+
+    let parsedRequestURL = url.parse(requestedURL, true);
+
+    let protocol;
+    let host;
+    let path='';
+
+    if(parsed.protocol != undefined) {
+        return parsed.href;
+    } 
+
+    protocol = "http://";
+
+    if(parsedRequestURL.host == undefined) {
+        host = '';
+    } else {
+        host = parsedRequestURL.host;
+    }
+
+    if(parsed.path[0] != '/') {
+        let p = parsedRequestURL.path;
+        let lastParanthesisIndex = p.lastIndexOf('/');
+        path += p.substr(0, lastParanthesisIndex+1);
+    }
+
+    path += parsed.path;
+
+    return protocol + host + path;
+}
+
+function cleanQuotes(str) {
+    return str.substr(1,str.length-2);
+}
+
+parser.addTagRule((tag) => {
+    if(tag.name == 'link' && tag.attrs['href']) {
+        let href = cleanQuotes(tag.attrs['href'].val);
+        tag.attrs['href'].val = '"' + adjustURL("https://maeyler.github.io/JS/sss/inspector.html", href) + '"';
+    }
+});
+
+parser.addTagRule((tag) => {
+    if(tag.name == 'script' && tag.attrs['src']) {
+        let src = cleanQuotes(tag.attrs['src'].val);
+        tag.attrs['src'].val = '"' +adjustURL("https://maeyler.github.io/JS/sss/inspector.html", src) + '"';
+    }
+});
+
     
 console.log(html.prettyPrint(parser.parse()));
