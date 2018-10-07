@@ -1,3 +1,6 @@
+var html = require('html');
+var url = require('url');
+
 const TOKEN = {
     EMPTY: '',
 //    LEFT: "(", 
@@ -37,11 +40,23 @@ const TOKEN = {
 }
 
 class Element {
-    // type can be whether closing tag(false), opening tag(true)
-    constructor(start, child, end)  {
+    constructor(start, content, end)  {
         this.start = start;
-        this.child = child;
+        this.content = content;
         this.end = end;
+    }
+
+    toString() {
+        let str = this.start;
+
+        if(this.content != undefined) {
+            str += this.content.toString();
+        }
+
+        if(this.end != undefined) {
+            str += this.end;
+        }
+        return str;
     }
 }
 
@@ -56,6 +71,7 @@ class Tag {
         this.type = type;
         this.name = name;
         this.attrs = attrs;
+
     }
 
     toString() {
@@ -68,6 +84,10 @@ class Tag {
 
         for(const accessor in this.attrs) {
             str += ' ' + this.attrs[accessor];
+        }
+
+        if(this.type == TagType.VOID) {
+            str += '/';
         }
         
         str += '>';
@@ -83,6 +103,28 @@ class Attribute {
 
     toString() {
         return this.name + '=' + this.val;
+    }
+}
+
+class Content {
+    constructor(content) {
+        this.content = content;
+    }
+
+    toString() {
+        return this.content.toString();
+    }
+}
+
+class ElementContent extends Content {
+    constructor(element) {
+        super(element);
+    }
+}
+
+class TextContent extends Content {
+    constructor(text) {
+        super(text);
     }
 }
 
@@ -159,6 +201,7 @@ class Parser {
     }
     expected(s) {
         new Error('Expected: '+s+', Found: ' + this.tok);
+        console.log('Expected: '+s+', Found: ' + this.tok);
     }
 
     parse() {
@@ -166,14 +209,37 @@ class Parser {
 
         let html='';
         while(this.tok != TOKEN.EOF) {
-            html += this.tag(); // should call element();
+            if(this.tok == TOKEN.IDENT || this.tok == TOKEN.STRING) {
+                html += this.content().toString();
+            } else {
+                html += this.element().toString(); // should call element();
+            }
         }
 
         return html;
     }
 
     element() {
-        // ??? 
+        let start = this.tag();
+        if(start.type == TagType.VOID) {
+            return new Element(start, undefined, undefined);
+        }else if(start.type == TagType.END) {
+            return start;
+        }
+
+        let content;
+        if(this.tok == TOKEN.IDENT || this.tok == TOKEN.STRING) {
+            content = this.content(); // text content
+        } else if(this.tok == TOKEN.OPENTAG) {
+            content = new ElementContent(this.element());
+        }
+
+        let end;
+        if(this.tok == TOKEN.OPENTAG) {
+            end = this.tag();
+        }
+
+        return new Element(start, content, end);
     }
 
     tag() {
@@ -192,21 +258,19 @@ class Parser {
             this.match(TOKEN.IDENT);
 
             let attributes = [];
-            while(this.tok != TOKEN.CLOSETAG) { // attributes
-                attributes.push(this.attr());
+            while(this.tok == TOKEN.IDENT) { // attributes
+                let attr = this.attr();
+                attributes[attr.name] = attr;
+            }
+
+            if(this.tok == TOKEN.SLASH) {
+                type = TagType.VOID;
+                this.match(TOKEN.SLASH);
             }
 
             this.match(TOKEN.CLOSETAG);
 
             return new Tag(type, tagName, attributes);
-        } else if (this.tok == TOKEN.IDENT) {  // if tag has a body
-            let body = '';
-
-            while(this.tok == TOKEN.IDENT) { 
-                body += this.lexer.sval + ' ';
-                this.match(TOKEN.IDENT);
-            }
-            return body;
         }
         this.expected("Open tag");
     }
@@ -227,12 +291,24 @@ class Parser {
         this.expected("ident");
     }
 
+    content() {
+        if (this.tok == TOKEN.IDENT) {  // if tag has a body
+            let body = '';
+
+            while(this.tok == TOKEN.IDENT) { 
+                body += this.lexer.sval + ' ';
+                this.match(TOKEN.IDENT);
+            }
+            return new TextContent(body);
+        }
+    }
+
 }
 
 let parser = new Parser
     (`
     <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width">
     <link href="inspector.css" rel="stylesheet" media="all">
     <script src="inspector.js"></script>
@@ -241,5 +317,4 @@ let parser = new Parser
     </head>
     `);
     
-console.log(parser.parse());
-
+console.log(html.prettyPrint(parser.parse()));
