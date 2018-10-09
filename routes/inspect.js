@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var axios = require('axios');
 var url = require('url');
+var htmlParser = require('../public/javascripts/html-parser/parser');
 
 //var Parser = require('../public/javascripts/parser');
 
@@ -25,7 +26,10 @@ router.get('/', function(req, res, next) {
     responseType:'text'
   }).then((response) => {
     res.set('Content-Type', 'text/html');
-    res.send(injectSSS(response.data));
+    let html = response.data;
+    html = htmlParser.sanitize(html,{}, requestedURL, adjustURL); 
+    let insp = injectSSS(html);
+    res.send(insp);
 
   }).catch((err) => {
     console.log("This is console error checker log.");
@@ -37,13 +41,14 @@ router.get('/', function(req, res, next) {
 
 function adjustURL(requestedURL, refURL) {
   let parsed = url.parse(refURL, true);
+  if(parsed.path == null) return refURL;
 
   let parsedRequestURL = url.parse(requestedURL, true);
 
   let protocol;
   let host;
   let path='';
-  console.log(parsed);
+  
   if(parsed.protocol != undefined) {
     return parsed.href;
   } 
