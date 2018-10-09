@@ -491,14 +491,33 @@ exports.sanitize = function(htmlString, removalCallbacks, hostURL, adjustURL) {
 		},
 
 		attribute: function(name, value, quote) {
-			attrList = ['src', 'href']
-			if(attrList.includes(name))  {
+			let currentTag = tagStack[tagStack.length-1];
+			if(currentTag == 'a' && name == 'href') {
+				if(value.indexOf('/docs') != -1 ) {
+					let a;
+				}
 				if(value.indexOf('#') != 0) {
-					value = adjustURL(hostURL, value);	
-				
-					if(!value.includes('js') && !value.includes('css')) {
-						value = '/inspect?url='	+ value;
-					}
+					value = '/inspect?url=' + adjustURL(hostURL, value);	
+				}
+			} else if(currentTag == 'link' && name == 'href') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'script' && name == 'src') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'img' && name == 'src') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'source' && name == 'src') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'track' && name == 'src') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'embed' && name == 'src') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'audio' && name == 'src') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'video' && name == 'src') {
+				value = adjustURL(hostURL, value);
+			} else if(currentTag == 'meta' && name == 'content') {
+				if(value.includes('/')) {
+				//	value = adjustURL(hostURL, value);
 				}
 			} 
 
