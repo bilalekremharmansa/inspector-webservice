@@ -9,6 +9,8 @@ var htmlParser = require('../public/javascripts/html-parser/parser');
 const inspectorURLs = {
   css: '/inspector/inspector.css',
   js: '/inspector/inspector.js'
+  /*css: 'https://maeyler.github.io/JS/sss/inspector.css',
+  js: 'https://maeyler.github.io/JS/sss/inspector.js'*/
 };
 
 /* GET users listing. */
@@ -22,25 +24,25 @@ router.get('/', function(req, res, next) {
     url: requestedURL,
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
+      "ACCEPT": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     },
     responseType:'text'
   }).then((response) => {
-    res.set('Content-Type', 'text/html');
     let html = response.data;
     html = htmlParser.sanitize(html,{}, requestedURL, adjustURL); 
     let insp = injectSSS(html);
     res.send(insp);
-
   }).catch((err) => {
     console.log("This is console error checker log.");
     console.log(err);
-    res.set("Content-Type", "text/json").status(402).send(err);
+    res.set("Content-Type", "text/json").status(402).send(err.toString());
   });
 
 });
 
 function adjustURL(requestedURL, refURL) {
-  let parsed = url.parse(refURL, true);
+  // parse(..) 3rd paratemer is set true to parse URL startswith // like //fonts.google...
+  let parsed = url.parse(refURL, true, true); 
   if(parsed.path == null) return refURL;
 
   let parsedRequestURL = url.parse(requestedURL, true);
@@ -55,10 +57,12 @@ function adjustURL(requestedURL, refURL) {
 
   protocol = "http://";
 
-  if(parsedRequestURL.host == undefined) {
-    host = '';
-  } else {
+  if(parsed.host != undefined) {
+    host = parsed.host;
+  } else if(parsedRequestURL.host != undefined){
     host = parsedRequestURL.host;
+  } else {
+    host = '';
   }
 
   if(parsed.path[0] != '/') {
@@ -82,6 +86,7 @@ function injectSSS(data) {
   let html = '';
 
   let indexEndHead = data.indexOf("</head>");
+  if(indexEndHead == -1) return data;
   html += data.substring(0, indexEndHead);
 
   html += 

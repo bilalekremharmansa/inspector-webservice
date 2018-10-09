@@ -261,6 +261,7 @@ function displayItem(c) {
 }
 function inspect(parent, init) {
     let t = document.createElement("table");
+    t.className = 'inspectorCSS';
     parent.appendChild(t); t.innerHTML =
 `
   <tr>
@@ -306,7 +307,7 @@ function inspect(parent, init) {
     <td colSpan=2><input id=inp onKeyUp='doEnter(event)'>
     </td>
   </tr>
-  <tr>
+  <tr id='insTR'>
     <td colSpan=2 id=out></td>
   </tr>
 `

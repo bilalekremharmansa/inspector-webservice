@@ -493,8 +493,13 @@ exports.sanitize = function(htmlString, removalCallbacks, hostURL, adjustURL) {
 		attribute: function(name, value, quote) {
 			attrList = ['src', 'href']
 			if(attrList.includes(name))  {
-				value = adjustURL(hostURL, value);
+				if(value.indexOf('#') != 0) {
+					value = adjustURL(hostURL, value);	
 				
+					if(!value.includes('js') && !value.includes('css')) {
+						value = '/inspect?url='	+ value;
+					}
+				}
 			} 
 
 			if (ignoreStack.length) {
