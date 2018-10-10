@@ -1,5 +1,43 @@
-extends layout
+doctype html
+html(lang="en")
+  head
+    title= Inspector
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    link(href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet")
+    link(type="text/css" rel="stylesheet" href="/css/materialize.css" media="screen,projection")
+  body(class='light-blue darken-1')
+    div(class='container')
+        div(class='card-panel grey lighten-3') 
+          h3(class='center-align blue-text') Enter an URL to open to World of HTMLElements
+          form
+            div(class='row')
+              div(class='.input-field inline col s9' )
+                input(id='url' placeholder="http://www.example.com" maxlength=256 title="Inspect" type="search" )
+              div(class='col s2')
+                a(id='inspect' class="waves-effect blue btn") 
+                  | Inspect
+                  i(class="material-icons right") send 
+    script.
+      let btnInspect = document.getElementById('inspect');
+      btnInspect.addEventListener('click', (event) => {
+          let inputUrl = document.getElementById('url');
+          let url = inputUrl.value;
+         
+          let hasProtocol = /^(http|https):\/\//.test(url);
+          if(hasProtocol) {
+            let isHTTPS = /^https:\/\//.test(url);
+            if(isHTTPS) {
+              url = url.replace('https', 'http');
+            }
+          }else {
+            url = 'http://' + url;
+          }
+          console.log(url);
+          window.open('/inspect?url=' + url);
+      });
 
-block content
-  h1= title
-  p Welcome to #{title}
+      
+            
+
+
+

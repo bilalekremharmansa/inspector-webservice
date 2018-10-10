@@ -18,6 +18,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 //app.use(cookieParser());
 app.use('/inspector', express.static(path.join(__dirname, 'public/javascripts/inspector')));
+app.use('/css', express.static(path.join(__dirname, 'public/stylesheets')));
+app.use('/js', express.static(path.join(__dirname, 'public/javascripts')));
 
 app.use('/', indexRouter);
 app.use('/inspect', inspectRouter);
